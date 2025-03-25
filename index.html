@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Scanner</title>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.0.8"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
         #reader { width: 100%; max-width: 400px; margin: auto; }
@@ -37,8 +37,9 @@
         let qrScanner;
 
         function startScanner() {
+            // Ensure the scanner stops before starting a new session
             if (qrScanner) {
-                qrScanner.stop().then(() => initializeScanner()).catch(() => initializeScanner());
+                qrScanner.stop().then(initializeScanner).catch(initializeScanner);
             } else {
                 initializeScanner();
             }
@@ -46,15 +47,22 @@
 
         function initializeScanner() {
             qrScanner = new Html5Qrcode("reader");
+
             qrScanner.start(
-                { facingMode: "environment", width: 1280, height: 720 }, // Request HD camera
-                { fps: 10, qrbox: 300 },  // Increased scan area
+                { facingMode: "environment" },  // Use back camera
+                { fps: 10, qrbox: 300 },  // Increase scan area for better detection
                 qrCodeMessage => {
                     stopScanner();
                     processQRCode(qrCodeMessage);
                 },
-                errorMessage => { console.log("QR Scan Error:", errorMessage); }
-            );
+                errorMessage => {
+                    console.error("QR Scan Error:", errorMessage);
+                    document.getElementById("result").innerText = "Camera Error: " + errorMessage;
+                }
+            ).catch(err => {
+                console.error("Camera Access Error:", err);
+                document.getElementById("result").innerText = "Camera Access Denied. Please allow camera permissions.";
+            });
         }
 
         function stopScanner() {
@@ -62,7 +70,9 @@
                 qrScanner.stop().then(() => {
                     document.getElementById("reader").innerHTML = "";
                     qrScanner = null;
-                }).catch(err => {});
+                }).catch(err => {
+                    console.error("Error stopping scanner:", err);
+                });
             }
         }
 
@@ -106,6 +116,7 @@
             });
         }
 
+        // Auto-start scanner when page loads
         window.onload = function() {
             startScanner();
         };
