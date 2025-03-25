@@ -10,8 +10,10 @@
         #reader { width: 100%; max-width: 400px; margin: auto; }
         #result { margin-top: 20px; font-size: 18px; font-weight: bold; }
         .info { margin-top: 10px; font-size: 16px; }
-        button { padding: 10px 15px; font-size: 16px; margin-top: 10px; cursor: pointer; }
-        .copy-btn { margin-left: 10px; padding: 5px 10px; font-size: 14px; }
+        button { padding: 10px 15px; font-size: 16px; margin-top: 10px; cursor: pointer; transition: background 0.3s; }
+        .copy-btn { margin-left: 10px; padding: 5px 10px; font-size: 14px; border: none; background: #007bff; color: white; cursor: pointer; }
+        .copy-btn:active { background: #0056b3; }
+        .copied { background: #28a745 !important; color: white; }
     </style>
 </head>
 <body>
@@ -21,8 +23,12 @@
     <p id="result">Scan a QR Code</p>
 
     <div id="upi-info" style="display:none;">
-        <p class="info">UPI ID: <span id="upi-id"></span> <button class="copy-btn" onclick="copyText('upi-id')">Copy</button></p>
-        <p class="info">User Name: <span id="user-name"></span> <button class="copy-btn" onclick="copyText('user-name')">Copy</button></p>
+        <p class="info">UPI ID: <span id="upi-id"></span> 
+            <button class="copy-btn" onclick="copyText('upi-id', this)">Copy</button>
+        </p>
+        <p class="info">User Name: <span id="user-name"></span> 
+            <button class="copy-btn" onclick="copyText('user-name', this)">Copy</button>
+        </p>
     </div>
 
     <button onclick="startScanner()">Scan QR Code</button>
@@ -74,10 +80,15 @@
             }
         }
 
-        function copyText(elementId) {
+        function copyText(elementId, btn) {
             let text = document.getElementById(elementId).innerText;
             navigator.clipboard.writeText(text).then(() => {
-                alert("Copied: " + text);
+                btn.classList.add("copied");
+                btn.innerText = "Copied!";
+                setTimeout(() => {
+                    btn.classList.remove("copied");
+                    btn.innerText = "Copy";
+                }, 1000);
             });
         }
     </script>
