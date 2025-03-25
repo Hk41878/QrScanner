@@ -20,7 +20,7 @@
 
     <h2>QR Code Scanner</h2>
     <div id="reader"></div>
-    <p id="result">Scan a QR Code</p>
+    <p id="result">Scanning...</p>
 
     <div id="upi-info" style="display:none;">
         <p class="info">UPI ID: <span id="upi-id"></span> 
@@ -31,13 +31,20 @@
         </p>
     </div>
 
-    <button onclick="startScanner()">Scan QR Code</button>
-    <button onclick="stopScanner()" style="display:none;" id="stopBtn">Scan Again</button>
+    <button onclick="restartScanner()" id="restartBtn" style="display:none;">Scan Again</button>
 
     <script>
         let qrScanner;
 
         function startScanner() {
+            if (qrScanner) {
+                qrScanner.stop().then(() => initializeScanner()).catch(() => initializeScanner());
+            } else {
+                initializeScanner();
+            }
+        }
+
+        function initializeScanner() {
             qrScanner = new Html5Qrcode("reader");
             qrScanner.start(
                 { facingMode: "environment" },
@@ -46,18 +53,24 @@
                     stopScanner();
                     processQRCode(qrCodeMessage);
                 },
-                errorMessage => { }
+                errorMessage => {}
             );
-            document.getElementById("stopBtn").style.display = "inline-block";
         }
 
         function stopScanner() {
             if (qrScanner) {
                 qrScanner.stop().then(() => {
                     document.getElementById("reader").innerHTML = "";
-                    document.getElementById("stopBtn").style.display = "none";
+                    qrScanner = null;
                 }).catch(err => {});
             }
+        }
+
+        function restartScanner() {
+            document.getElementById("upi-info").style.display = "none";
+            document.getElementById("result").innerText = "Scanning...";
+            document.getElementById("restartBtn").style.display = "none";
+            startScanner();
         }
 
         function processQRCode(qrCode) {
@@ -66,17 +79,16 @@
                 let nameMatch = qrCode.match(/pn=([^&]+)/);
                 
                 if (upiMatch && nameMatch) {
-                    document.getElementById("upi-id").innerText = upiMatch[1];
-                    document.getElementById("user-name").innerText = nameMatch[1];
+                    document.getElementById("upi-id").innerText = decodeURIComponent(upiMatch[1]);
+                    document.getElementById("user-name").innerText = decodeURIComponent(nameMatch[1]);
                     document.getElementById("upi-info").style.display = "block";
                     document.getElementById("result").innerText = "UPI QR Code Scanned!";
+                    document.getElementById("restartBtn").style.display = "inline-block";
                 } else {
                     document.getElementById("result").innerText = "Invalid UPI QR Code";
-                    document.getElementById("upi-info").style.display = "none";
                 }
             } else {
                 document.getElementById("result").innerText = "Scanned Code: " + qrCode;
-                document.getElementById("upi-info").style.display = "none";
             }
         }
 
@@ -91,6 +103,10 @@
                 }, 1000);
             });
         }
+
+        window.onload = function() {
+            startScanner();
+        };
     </script>
 
 </body>
