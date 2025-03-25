@@ -7,64 +7,89 @@
     <style>
         body {
             background-color: #FCFCFC;
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             text-align: center;
             margin: 0;
             padding: 0;
-        }
-        h1 {
-            color: #26547C;
-            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
         .container {
             width: 90%;
             max-width: 400px;
-            margin: auto;
+            background-color: white;
             padding: 20px;
-            background-color: #FFD166;
-            border-radius: 10px;
+            border-radius: 12px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
-        #result {
-            background: #06D6A0;
-            padding: 10px;
-            color: white;
-            font-size: 18px;
-            border-radius: 5px;
-            margin-top: 15px;
-            word-wrap: break-word;
+        h1 {
+            color: #26547C;
+            font-size: 22px;
+            margin-bottom: 15px;
         }
         button {
+            width: 100%;
             background: #EF476F;
             color: white;
-            padding: 12px;
+            padding: 14px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
+            font-weight: bold;
             transition: 0.3s;
             margin-top: 10px;
         }
         button:hover {
             background: #D43F5E;
         }
-        .copy-btn {
-            background: #26547C;
-            margin-left: 10px;
-            transition: background 0.3s ease;
-        }
-        .copy-btn.copied {
+        .result-box {
             background: #06D6A0;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .copy-btn {
+            background: #FFD166;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .copy-btn:hover {
+            background: #E0B95B;
+        }
+        .copied {
+            background: #26547C !important;
+            color: white;
         }
     </style>
 </head>
 <body>
 
-    <h1>QR Code Scanner</h1>
     <div class="container">
+        <h1>QR Code Scanner</h1>
         <button onclick="scanQRCode()">Scan QR Code</button>
-        <div id="result" style="display: none;"></div>
-        <button class="copy-btn" onclick="copyText()" style="display: none;">Copy</button>
+
+        <div id="upiBox" class="result-box" style="display: none;">
+            <span id="upiID">UPI: </span>
+            <button class="copy-btn" onclick="copyText('upiID', this)">Copy</button>
+        </div>
+
+        <div id="nameBox" class="result-box" style="display: none;">
+            <span id="userName">Name: </span>
+            <button class="copy-btn" onclick="copyText('userName', this)">Copy</button>
+        </div>
     </div>
 
     <script>
@@ -76,19 +101,25 @@
             if (match) {
                 let upiID = match[1];
                 let name = match[2];
-                document.getElementById("result").innerHTML = `<b>UPI:</b> ${upiID} <br> <b>Name:</b> ${name}`;
-                document.getElementById("result").style.display = "block";
-                document.querySelector(".copy-btn").style.display = "inline-block";
+
+                document.getElementById("upiID").innerHTML = `<b>UPI:</b> ${upiID}`;
+                document.getElementById("userName").innerHTML = `<b>Name:</b> ${name}`;
+                
+                document.getElementById("upiBox").style.display = "flex";
+                document.getElementById("nameBox").style.display = "flex";
             }
         }
 
-        function copyText() {
-            let text = document.getElementById("result").innerText;
+        function copyText(elementId, button) {
+            let text = document.getElementById(elementId).innerText.split(": ")[1];
             navigator.clipboard.writeText(text);
 
-            let copyBtn = document.querySelector(".copy-btn");
-            copyBtn.classList.add("copied");
-            setTimeout(() => copyBtn.classList.remove("copied"), 1000);
+            button.classList.add("copied");
+            button.innerText = "Copied!";
+            setTimeout(() => {
+                button.classList.remove("copied");
+                button.innerText = "Copy";
+            }, 1000);
         }
     </script>
 
