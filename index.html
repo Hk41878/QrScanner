@@ -47,13 +47,13 @@
         function initializeScanner() {
             qrScanner = new Html5Qrcode("reader");
             qrScanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: 250 },
+                { facingMode: "environment", width: 1280, height: 720 }, // Request HD camera
+                { fps: 10, qrbox: 300 },  // Increased scan area
                 qrCodeMessage => {
                     stopScanner();
                     processQRCode(qrCodeMessage);
                 },
-                errorMessage => {}
+                errorMessage => { console.log("QR Scan Error:", errorMessage); }
             );
         }
 
@@ -74,6 +74,8 @@
         }
 
         function processQRCode(qrCode) {
+            console.log("Scanned QR Code:", qrCode);  // Debug log
+
             if (qrCode.startsWith("upi://pay?")) {
                 let upiMatch = qrCode.match(/pa=([^&]+)/);
                 let nameMatch = qrCode.match(/pn=([^&]+)/);
