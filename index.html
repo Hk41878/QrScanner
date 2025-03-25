@@ -4,142 +4,102 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Scanner</title>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
     <style>
         body {
-            background-color: #FCFCFC;
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
+            background-color: #26547C;
+            color: #FCFCFC;
             text-align: center;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            width: 90%;
-            max-width: 400px;
-            background-color: white;
             padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
         }
         h1 {
-            color: #26547C;
-            font-size: 22px;
-            margin-bottom: 15px;
+            color: #FFD166;
         }
-        button {
+        #reader {
             width: 100%;
-            background: #EF476F;
+            max-width: 400px;
+            margin: auto;
+            background: #FCFCFC;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .btn {
+            background-color: #06D6A0;
             color: white;
-            padding: 14px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 8px;
             cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
+            font-size: 18px;
+            border-radius: 5px;
             transition: 0.3s;
-            margin-top: 10px;
         }
-        button:hover {
-            background: #D43F5E;
+        .btn:hover {
+            background-color: #EF476F;
         }
-        .scanner-box {
-            width: 100%;
-            height: 250px;
-            margin-top: 15px;
-        }
-        .result-box {
-            background: #06D6A0;
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 15px;
+        .output {
+            background: #FFD166;
+            color: black;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
             font-size: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
         .copy-btn {
-            background: #FFD166;
+            background: #EF476F;
+            color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
+            padding: 5px 10px;
+            margin-left: 10px;
             cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s;
+            border-radius: 3px;
+            transition: 0.3s;
         }
         .copy-btn:hover {
-            background: #E0B95B;
-        }
-        .copied {
-            background: #26547C !important;
-            color: white;
+            background: #06D6A0;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>QR Code Scanner</h1>
-        <button onclick="startScanner()">Scan QR Code</button>
-        <div id="reader" class="scanner-box" style="display: none;"></div>
+    <h1>QR Code Scanner</h1>
+    <div id="reader"></div>
+    <button class="btn" onclick="startScanner()">Scan QR Code</button>
 
-        <div id="upiBox" class="result-box" style="display: none;">
-            <span id="upiID">UPI: </span>
-            <button class="copy-btn" onclick="copyText('upiID', this)">Copy</button>
-        </div>
-
-        <div id="nameBox" class="result-box" style="display: none;">
-            <span id="userName">Name: </span>
-            <button class="copy-btn" onclick="copyText('userName', this)">Copy</button>
-        </div>
+    <div id="output" class="output" style="display: none;">
+        <p><strong>UPI ID:</strong> <span id="upi-id"></span> <button class="copy-btn" onclick="copyText('upi-id')">Copy</button></p>
+        <p><strong>Username:</strong> <span id="username"></span> <button class="copy-btn" onclick="copyText('username')">Copy</button></p>
     </div>
 
     <script>
-        let scanner;
-
         function startScanner() {
-            document.getElementById("reader").style.display = "block";
-            scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-
-            scanner.render(onScanSuccess);
+            let scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+            
+            scanner.render((decodedText) => {
+                processQRCode(decodedText);
+                scanner.clear(); // Stop scanner after successful scan
+            });
         }
 
-        function onScanSuccess(decodedText) {
-            scanner.clear();
-            document.getElementById("reader").style.display = "none";
-
-            let upiRegex = /upi:\/\/pay\?pa=([^&]*)&pn=([^&]*)/;
-            let match = decodedText.match(upiRegex);
-
-            if (match) {
-                let upiID = match[1];
-                let name = match[2];
-
-                document.getElementById("upiID").innerHTML = `<b>UPI:</b> ${upiID}`;
-                document.getElementById("userName").innerHTML = `<b>Name:</b> ${name}`;
-
-                document.getElementById("upiBox").style.display = "flex";
-                document.getElementById("nameBox").style.display = "flex";
+        function processQRCode(qrData) {
+            let upiMatch = qrData.match(/upi:\/\/pay\?pa=(.*?)&pn=(.*?)&/);
+            
+            if (upiMatch) {
+                document.getElementById("upi-id").innerText = upiMatch[1];
+                document.getElementById("username").innerText = upiMatch[2];
+                document.getElementById("output").style.display = "block";
             } else {
                 alert("Invalid UPI QR Code");
             }
         }
 
-        function copyText(elementId, button) {
-            let text = document.getElementById(elementId).innerText.split(": ")[1];
+        function copyText(elementId) {
+            let text = document.getElementById(elementId).innerText;
             navigator.clipboard.writeText(text);
 
-            button.classList.add("copied");
-            button.innerText = "Copied!";
-            setTimeout(() => {
-                button.classList.remove("copied");
-                button.innerText = "Copy";
-            }, 1000);
+            let btn = document.querySelector(`[onclick="copyText('${elementId}')"]`);
+            btn.style.background = "#06D6A0";
+            setTimeout(() => { btn.style.background = "#EF476F"; }, 1000);
         }
     </script>
 
