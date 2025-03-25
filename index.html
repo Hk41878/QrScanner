@@ -4,189 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Scanner</title>
-    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        /* General Styling */
         body {
-            font-family: 'Poppins', sans-serif;
+            background-color: #FCFCFC;
+            font-family: Arial, sans-serif;
             text-align: center;
-            padding: 20px;
-            background: #121212;
-            color: white;
+            margin: 0;
+            padding: 0;
         }
-
-        h2 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #00ffcc;
-        }
-
-        /* Scanner Box */
-        #reader {
-            width: 100%;
-            max-width: 400px;
-            margin: auto;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            backdrop-filter: blur(10px);
-        }
-
-        /* Result Text */
-        #result {
+        h1 {
+            color: #26547C;
             margin-top: 20px;
-            font-size: 18px;
-            font-weight: bold;
-            padding: 10px;
-            background: rgba(0, 255, 204, 0.2);
-            border-radius: 8px;
-            display: inline-block;
         }
-
-        /* UPI Info Styling */
-        .info-box {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            margin-top: 15px;
-            border-radius: 10px;
-            display: inline-block;
+        .container {
             width: 90%;
             max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            background-color: #FFD166;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
         }
-
-        .info {
-            font-size: 16px;
-            margin: 10px 0;
+        #result {
+            background: #06D6A0;
+            padding: 10px;
+            color: white;
+            font-size: 18px;
+            border-radius: 5px;
+            margin-top: 15px;
+            word-wrap: break-word;
         }
-
-        /* Buttons */
         button {
-            padding: 12px 18px;
-            font-size: 16px;
+            background: #EF476F;
+            color: white;
+            padding: 12px;
             border: none;
-            border-radius: 6px;
+            border-radius: 5px;
             cursor: pointer;
-            transition: all 0.3s ease-in-out;
+            font-size: 16px;
+            transition: 0.3s;
             margin-top: 10px;
         }
-
-        .btn-primary {
-            background: #00ffcc;
-            color: black;
-            font-weight: bold;
+        button:hover {
+            background: #D43F5E;
         }
-
-        .btn-primary:hover {
-            background: #00cc99;
-        }
-
-        .btn-secondary {
-            background: #ffcc00;
-            color: black;
-            font-weight: bold;
-        }
-
-        .btn-secondary:hover {
-            background: #e6b800;
-        }
-
         .copy-btn {
-            padding: 5px 10px;
-            font-size: 14px;
-            border: none;
-            background: #007bff;
-            color: white;
-            cursor: pointer;
-            border-radius: 5px;
+            background: #26547C;
+            margin-left: 10px;
             transition: background 0.3s ease;
         }
-
-        .copy-btn:hover {
-            background: #0056b3;
-        }
-
-        .copied {
-            background: #28a745 !important;
-            color: white;
+        .copy-btn.copied {
+            background: #06D6A0;
         }
     </style>
 </head>
 <body>
 
-    <h2>QR Code Scanner</h2>
-    <div id="reader"></div>
-    <p id="result">Scan a QR Code</p>
-
-    <div id="upi-info" class="info-box" style="display:none;">
-        <p class="info">UPI ID: <span id="upi-id"></span> 
-            <button class="copy-btn" onclick="copyText('upi-id', this)">Copy</button>
-        </p>
-        <p class="info">User Name: <span id="user-name"></span> 
-            <button class="copy-btn" onclick="copyText('user-name', this)">Copy</button>
-        </p>
+    <h1>QR Code Scanner</h1>
+    <div class="container">
+        <button onclick="scanQRCode()">Scan QR Code</button>
+        <div id="result" style="display: none;"></div>
+        <button class="copy-btn" onclick="copyText()" style="display: none;">Copy</button>
     </div>
 
-    <button class="btn-primary" onclick="startScanner()">Scan QR Code</button>
-    <button class="btn-secondary" onclick="stopScanner()" style="display:none;" id="stopBtn">Scan Again</button>
-
     <script>
-        let qrScanner;
+        function scanQRCode() {
+            let dummyQR = "upi://pay?pa=rajeevadhikari@axisbank&pn=Rajeev Adhikari&cu=INR"; // Simulating a scan
+            let upiRegex = /upi:\/\/pay\?pa=([^&]*)&pn=([^&]*)/;
+            let match = dummyQR.match(upiRegex);
 
-        function startScanner() {
-            qrScanner = new Html5Qrcode("reader");
-            qrScanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: 250 },
-                qrCodeMessage => {
-                    stopScanner();
-                    processQRCode(qrCodeMessage);
-                },
-                errorMessage => { }
-            );
-            document.getElementById("stopBtn").style.display = "inline-block";
-        }
-
-        function stopScanner() {
-            if (qrScanner) {
-                qrScanner.stop().then(() => {
-                    document.getElementById("reader").innerHTML = "";
-                    document.getElementById("stopBtn").style.display = "none";
-                }).catch(err => {});
+            if (match) {
+                let upiID = match[1];
+                let name = match[2];
+                document.getElementById("result").innerHTML = `<b>UPI:</b> ${upiID} <br> <b>Name:</b> ${name}`;
+                document.getElementById("result").style.display = "block";
+                document.querySelector(".copy-btn").style.display = "inline-block";
             }
         }
 
-        function processQRCode(qrCode) {
-            if (qrCode.startsWith("upi://pay?")) {
-                let upiMatch = qrCode.match(/pa=([^&]+)/);
-                let nameMatch = qrCode.match(/pn=([^&]+)/);
-                
-                if (upiMatch && nameMatch) {
-                    document.getElementById("upi-id").innerText = upiMatch[1];
-                    document.getElementById("user-name").innerText = nameMatch[1];
-                    document.getElementById("upi-info").style.display = "block";
-                    document.getElementById("result").innerText = "UPI QR Code Scanned!";
-                } else {
-                    document.getElementById("result").innerText = "Invalid UPI QR Code";
-                    document.getElementById("upi-info").style.display = "none";
-                }
-            } else {
-                document.getElementById("result").innerText = "Scanned Code: " + qrCode;
-                document.getElementById("upi-info").style.display = "none";
-            }
-        }
+        function copyText() {
+            let text = document.getElementById("result").innerText;
+            navigator.clipboard.writeText(text);
 
-        function copyText(elementId, btn) {
-            let text = document.getElementById(elementId).innerText;
-            navigator.clipboard.writeText(text).then(() => {
-                btn.classList.add("copied");
-                btn.innerText = "Copied!";
-                setTimeout(() => {
-                    btn.classList.remove("copied");
-                    btn.innerText = "Copy";
-                }, 1000);
-            });
+            let copyBtn = document.querySelector(".copy-btn");
+            copyBtn.classList.add("copied");
+            setTimeout(() => copyBtn.classList.remove("copied"), 1000);
         }
     </script>
 
