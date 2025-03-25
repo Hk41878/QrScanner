@@ -9,7 +9,9 @@
         body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
         #reader { width: 100%; max-width: 400px; margin: auto; }
         #result { margin-top: 20px; font-size: 18px; font-weight: bold; }
+        .info { margin-top: 10px; font-size: 16px; }
         button { padding: 10px 15px; font-size: 16px; margin-top: 10px; cursor: pointer; }
+        .copy-btn { margin-left: 10px; padding: 5px 10px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -17,19 +19,26 @@
     <h2>QR Code Scanner</h2>
     <div id="reader"></div>
     <p id="result">Scan a QR Code</p>
+
+    <div id="upi-info" style="display:none;">
+        <p class="info">UPI ID: <span id="upi-id"></span> <button class="copy-btn" onclick="copyText('upi-id')">Copy</button></p>
+        <p class="info">User Name: <span id="user-name"></span> <button class="copy-btn" onclick="copyText('user-name')">Copy</button></p>
+    </div>
+
     <button onclick="startScanner()">Scan QR Code</button>
     <button onclick="stopScanner()" style="display:none;" id="stopBtn">Scan Again</button>
 
     <script>
         let qrScanner;
+
         function startScanner() {
             qrScanner = new Html5Qrcode("reader");
             qrScanner.start(
-                { facingMode: "environment" }, 
+                { facingMode: "environment" },
                 { fps: 10, qrbox: 250 },
                 qrCodeMessage => {
-                    document.getElementById("result").innerText = "Scanned Code: " + qrCodeMessage;
                     stopScanner();
+                    processQRCode(qrCodeMessage);
                 },
                 errorMessage => { }
             );
@@ -43,6 +52,33 @@
                     document.getElementById("stopBtn").style.display = "none";
                 }).catch(err => {});
             }
+        }
+
+        function processQRCode(qrCode) {
+            if (qrCode.startsWith("upi://pay?")) {
+                let upiMatch = qrCode.match(/pa=([^&]+)/);
+                let nameMatch = qrCode.match(/pn=([^&]+)/);
+                
+                if (upiMatch && nameMatch) {
+                    document.getElementById("upi-id").innerText = upiMatch[1];
+                    document.getElementById("user-name").innerText = nameMatch[1];
+                    document.getElementById("upi-info").style.display = "block";
+                    document.getElementById("result").innerText = "UPI QR Code Scanned!";
+                } else {
+                    document.getElementById("result").innerText = "Invalid UPI QR Code";
+                    document.getElementById("upi-info").style.display = "none";
+                }
+            } else {
+                document.getElementById("result").innerText = "Scanned Code: " + qrCode;
+                document.getElementById("upi-info").style.display = "none";
+            }
+        }
+
+        function copyText(elementId) {
+            let text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied: " + text);
+            });
         }
     </script>
 
